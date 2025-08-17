@@ -378,62 +378,61 @@ if ('serviceWorker' in navigator) {
 let deferredPrompt = null;
 
 function isIos() {
-  const userAgent = window.navigator.userAgent.toLowerCase();
-  return /iphone|ipad|ipod/.test(userAgent);
+  return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
 }
 
-function updateInstallBtnVisibility() {
+function setupInstallButton() {
+  if (!installBtn) return;
+
+  // 1. Check if already standalone, if so, do nothing.
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   if (isStandalone) {
-    if (installBtn) installBtn.hidden = true;
+    installBtn.hidden = true;
     return;
   }
-  // Show install button on iOS devices for manual installation instructions.
-  if (isIos() && !isStandalone) {
-    if (installBtn) installBtn.hidden = false;
-  }
-}
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  // Don't show the install prompt on iOS, as it's not supported.
+  // 2. Check for iOS Safari
   if (isIos()) {
-    return;
-  }
-  e.preventDefault();
-  deferredPrompt = e;
-  if (installBtn) installBtn.hidden = false;
-});
-
-installBtn?.addEventListener('click', async () => {
-  // On iOS, show instructions to add to home screen.
-  if (isIos()) {
-    alert("To install the app, tap the 'Share' icon and then 'Add to Home Screen'.");
+    // On iOS, the 'beforeinstallprompt' event is not supported.
+    // We just show the button and explain how to 'Add to Home Screen'.
+    installBtn.hidden = false;
+    installBtn.addEventListener('click', () => {
+      alert("To install this app on your iPhone, tap the Share button and then 'Add to Home Screen'.");
+    });
     return;
   }
 
-  try {
+  // 3. Standard PWA prompt for other browsers (e.g., Chrome on Android)
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.hidden = false; // Show the button if the browser supports the prompt.
+  });
+
+  installBtn.addEventListener('click', async () => {
     if (!deferredPrompt) return;
-    installBtn.disabled = true;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-  } catch (_) {
-    // ignore
-  } finally {
-    deferredPrompt = null;
-    if (installBtn) {
+    try {
+      installBtn.disabled = true;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      // The 'appinstalled' event will hide the button if successful.
+    } catch (err) {
+      console.warn('Install prompt error:', err);
+    } finally {
       installBtn.disabled = false;
+      deferredPrompt = null;
+      // Hide it anyway, as the prompt can only be used once.
       installBtn.hidden = true;
     }
-  }
-});
+  });
 
-window.addEventListener('appinstalled', () => {
-  deferredPrompt = null;
-  if (installBtn) installBtn.hidden = true;
-});
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    installBtn.hidden = true;
+  });
+}
 
-window.addEventListener('DOMContentLoaded', updateInstallBtnVisibility);
-window.matchMedia('(display-mode: standalone)')?.addEventListener?.('change', updateInstallBtnVisibility);
+window.addEventListener('DOMContentLoaded', setupInstallButton);
 console.log('[OCR] app.js module loaded');
 
 // OCR functions
