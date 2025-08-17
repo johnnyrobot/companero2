@@ -377,20 +377,40 @@ if ('serviceWorker' in navigator) {
 // PWA: custom install prompt
 let deferredPrompt = null;
 
+function isIos() {
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  return /iphone|ipad|ipod/.test(userAgent);
+}
+
 function updateInstallBtnVisibility() {
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   if (isStandalone) {
     if (installBtn) installBtn.hidden = true;
+    return;
+  }
+  // Show install button on iOS devices for manual installation instructions.
+  if (isIos() && !isStandalone) {
+    if (installBtn) installBtn.hidden = false;
   }
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {
+  // Don't show the install prompt on iOS, as it's not supported.
+  if (isIos()) {
+    return;
+  }
   e.preventDefault();
   deferredPrompt = e;
   if (installBtn) installBtn.hidden = false;
 });
 
 installBtn?.addEventListener('click', async () => {
+  // On iOS, show instructions to add to home screen.
+  if (isIos()) {
+    alert("To install the app, tap the 'Share' icon and then 'Add to Home Screen'.");
+    return;
+  }
+
   try {
     if (!deferredPrompt) return;
     installBtn.disabled = true;
