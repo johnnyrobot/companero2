@@ -30,23 +30,6 @@
         <small class="hint" data-key="savedOnDevice">Saved on this device</small>
       </div>
     </section>
-    <section aria-labelledby="scan-title" class="card" id="scan-card">
-      <h2 id="scan-title" data-key="scanFromPhoto">Scan from photo</h2>
-      <p class="muted" data-key="scanDescription">Take a photo of your student card or class info to auto-fill fields.</p>
-      <div class="field">
-        <label for="scan-input" data-key="photo">Photo</label>
-        <input id="scan-input" type="file" accept="image/*" capture="environment" aria-describedby="scan-help">
-        <small id="scan-help" class="hint" data-key="scanHelp">Images are processed by an AI model. Your image is sent to the configured AI service.</small>
-      </div>
-      <div id="scan-preview-wrap" class="scan-preview-wrap" hidden>
-        <img id="scan-preview" alt="Selected photo preview" />
-      </div>
-      <div class="actions">
-        <button type="button" class="btn" id="scan-to-profile-btn" data-key="extractToStudentInfo">Extract to Student Info</button>
-        <button type="button" class="btn" id="scan-to-class-btn" data-key="extractToClassForm">Extract to Class form</button>
-      </div>
-      <p id="scan-status" class="hint" role="status" aria-live="polite"></p>
-    </section>
     <section aria-labelledby="form-title" class="card">
       <h2 id="form-title" data-key="addEditClass">Add or Edit Class</h2>
       <form id="class-form" novalidate>
