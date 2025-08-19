@@ -2,6 +2,7 @@
 
 const STORAGE_KEY = 'student_planner.classes.v1';
 const PROFILE_KEY = 'course_companion.profile.v1';
+const HUMAN_VERSION = '8.18.25';
 
 function loadClasses() {
   try {
@@ -657,7 +658,7 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', (event) => {
     if (!event?.data) return;
     if (event.data.type === 'VERSION') {
-      if (appVersionEl) appVersionEl.textContent = event.data.version || '';
+      if (appVersionEl) appVersionEl.title = event.data.version || '';
     }
   });
 }
@@ -666,4 +667,5 @@ if ('serviceWorker' in navigator) {
 window.addEventListener('DOMContentLoaded', () => {
   initSettings();
   initWhatsNew();
+  if (appVersionEl) appVersionEl.textContent = HUMAN_VERSION;
 });
