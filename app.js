@@ -178,6 +178,11 @@ function renderList() {
     li.className = 'list-item';
     li.setAttribute('data-id', item.id);
 
+    // Apply deterministic accent color per item (accessible: only used as accent)
+    const { accent, accentWeak } = accentFromString(item.id || item.name || '');
+    li.style.setProperty('--accent', accent);
+    li.style.setProperty('--accent-weak', accentWeak);
+
     const title = document.createElement('div');
     title.className = 'item-title';
     title.textContent = [
@@ -234,6 +239,20 @@ function renderList() {
   }
 
   setBusy(false);
+}
+
+// Deterministic accent color generator based on a string seed
+function accentFromString(seed) {
+  let h = 2166136261 >>> 0; // FNV-1a base
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  const hue = h % 360; // 0-359
+  // High saturation, medium lightness for vivid accent; weak version has alpha
+  const accent = `hsl(${hue}, 85%, 52%)`;
+  const accentWeak = `hsla(${hue}, 85%, 52%, 0.14)`;
+  return { accent, accentWeak };
 }
 
 // Export / Import
