@@ -74,6 +74,7 @@ textarea:-moz-autofill {
 .list-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
 .list-item { display: grid; gap: 0.25rem; padding: 0.75rem; border: 1px solid var(--border); border-left: 4px solid var(--accent, transparent); border-radius: 10px; background: #121212; }
+.no-accents .list-item { border-left-color: transparent !important; }
 .item-title { font-weight: 700; }
 .item-meta { color: var(--muted); font-size: 0.95rem; }
 .item-actions { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
@@ -82,6 +83,9 @@ textarea:-moz-autofill {
 .scan-preview-wrap { margin-top: 0.5rem; }
 .scan-preview-wrap img { width: 100%; height: auto; display: block; border: 1px solid var(--border); border-radius: 10px; background: #111; }
 #scan-status { margin-top: 0.5rem; }
+
+/* What's New dialog minor spacing */
+#whats-new .actions { justify-content: flex-end; }
 
 @media (pointer: coarse) { .btn { padding: 0.8rem 1rem; } }
 

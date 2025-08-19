@@ -73,6 +73,12 @@ const studentIdInput = document.getElementById('student-id');
 const studentEmailInput = document.getElementById('student-email');
 const languageToggle = document.getElementById('language-toggle');
 const iosHintEl = document.getElementById('ios-install-hint');
+// Settings / a11y / version
+const toggleAccents = document.getElementById('toggle-accents');
+const updateStatusLive = document.getElementById('update-status-live');
+const whatsNew = document.getElementById('whats-new');
+const whatsNewDismiss = document.getElementById('whats-new-dismiss');
+const appVersionEl = document.getElementById('app-version');
 
 // i18n helper
 function t(key) {
@@ -81,6 +87,14 @@ function t(key) {
   } catch {
     return key;
   }
+}
+
+// Announce a message via aria-live region (polite)
+function announce(msg) {
+  if (!updateStatusLive) return;
+  updateStatusLive.textContent = msg || '';
+  // Clear after a short delay to prevent repeated announcements
+  setTimeout(() => { if (updateStatusLive.textContent === msg) updateStatusLive.textContent = ''; }, 4000);
 }
 
 
@@ -415,6 +429,9 @@ if ('serviceWorker' in navigator) {
           }
         });
       });
+
+      // Ask the active SW for its version so we can show it in the footer
+      requestVersionFromSW(reg);
     }).catch(err => {
       console.warn('SW registration failed', err);
     });
@@ -438,6 +455,7 @@ function showUpdateBanner(waitingWorker) {
 navigator.serviceWorker?.addEventListener('controllerchange', () => {
   if (reloadingDueToSW) return;
   reloadingDueToSW = true;
+  try { sessionStorage.setItem('showWhatsNew', '1'); } catch {}
   window.location.reload();
 });
 
@@ -447,7 +465,9 @@ if (checkUpdatesBtn) {
     try {
       const reg = await navigator.serviceWorker.getRegistration();
       if (!reg) {
-        alert(t('upToDate'));
+        const msg = t('upToDate');
+        alert(msg);
+        announce(msg);
         return;
       }
       // Trigger browser to check for updates
@@ -475,12 +495,16 @@ if (checkUpdatesBtn) {
         if (reg.waiting) {
           showUpdateBanner(reg.waiting);
         } else {
-          alert(t('upToDate'));
+          const msg = t('upToDate');
+          alert(msg);
+          announce(msg);
         }
       }, 400);
     } catch (e) {
       console.warn('Update check failed', e);
-      alert(t('upToDate'));
+      const msg = t('upToDate');
+      alert(msg);
+      announce(msg);
     }
   });
 }
@@ -548,3 +572,59 @@ function setupInstallButton() {
 
 window.addEventListener('DOMContentLoaded', setupInstallButton);
 console.log('app.js module loaded');
+
+// Settings: Color accents toggle (persist in localStorage)
+const ACCENTS_KEY = 'ui.accentsEnabled.v1';
+function applyAccentsPref(enabled) {
+  document.body.classList.toggle('no-accents', !enabled);
+}
+
+function initSettings() {
+  let enabled = true;
+  try {
+    const raw = localStorage.getItem(ACCENTS_KEY);
+    enabled = raw == null ? true : raw === 'true';
+  } catch {}
+  applyAccentsPref(enabled);
+  if (toggleAccents) toggleAccents.checked = enabled;
+  toggleAccents?.addEventListener('change', () => {
+    const next = !!toggleAccents.checked;
+    applyAccentsPref(next);
+    try { localStorage.setItem(ACCENTS_KEY, String(next)); } catch {}
+  });
+}
+
+// What's New: show after an update-driven reload
+function initWhatsNew() {
+  let shouldShow = false;
+  try { shouldShow = sessionStorage.getItem('showWhatsNew') === '1'; } catch {}
+  if (!shouldShow || !whatsNew) return;
+  whatsNew.hidden = false;
+  whatsNewDismiss?.addEventListener('click', () => {
+    whatsNew.hidden = true;
+  }, { once: true });
+  try { sessionStorage.removeItem('showWhatsNew'); } catch {}
+}
+
+// Version indicator: ask SW for version and update footer
+function requestVersionFromSW(reg) {
+  try {
+    const target = reg?.active || navigator.serviceWorker?.controller;
+    target?.postMessage({ type: 'GET_VERSION' });
+  } catch {}
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (!event?.data) return;
+    if (event.data.type === 'VERSION') {
+      if (appVersionEl) appVersionEl.textContent = event.data.version || '';
+    }
+  });
+}
+
+// Initialize settings and post-update UI when DOM is ready
+window.addEventListener('DOMContentLoaded', () => {
+  initSettings();
+  initWhatsNew();
+});

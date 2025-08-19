@@ -29,8 +29,16 @@ self.addEventListener('activate', (event) => {
 
 // Accept a signal from the page to activate immediately
 self.addEventListener('message', (event) => {
-  if (event && event.data && event.data.type === 'SKIP_WAITING') {
+  if (!event || !event.data) return;
+  if (event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+    return;
+  }
+  if (event.data.type === 'GET_VERSION') {
+    try {
+      // Respond to the client that asked for version
+      event.source?.postMessage({ type: 'VERSION', version: CACHE_NAME });
+    } catch (e) {}
   }
 });
 
