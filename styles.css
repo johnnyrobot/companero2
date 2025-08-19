@@ -69,6 +69,8 @@ textarea:-moz-autofill {
 .btn:hover { background: #151515; }
 .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
 .btn.primary:hover { filter: brightness(1.05); }
+.btn.danger { background: #b3261e; border-color: #b3261e; color: #fff; }
+.btn.danger:hover { filter: brightness(1.05); }
 
 .list-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
 .list-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }

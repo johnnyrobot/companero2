@@ -68,6 +68,7 @@ const installBtn = document.getElementById('install-btn');
 const updateBanner = document.getElementById('update-banner');
 const reloadBtn = document.getElementById('reload-btn');
 const checkUpdatesBtn = document.getElementById('check-updates-btn');
+const deleteAllBtn = document.getElementById('delete-all-btn');
 // Profile elems
 const studentIdInput = document.getElementById('student-id');
 const studentEmailInput = document.getElementById('student-email');
@@ -172,6 +173,44 @@ function getFilteredClasses() {
     return [c.name, c.section, c.daysTimes, c.location, c.notes]
       .filter(Boolean)
       .some((v) => v.toLowerCase().includes(q));
+  });
+}
+
+// Destructive: Delete Everything (local data + caches + SW) with confirmation
+if (deleteAllBtn) {
+  deleteAllBtn.addEventListener('click', async () => {
+    const message = t('deleteEverythingConfirm');
+    const ok = confirm(message);
+    if (!ok) return;
+    try {
+      // Try to fetch latest SW before clearing (best effort)
+      try { (await navigator.serviceWorker.getRegistration())?.update(); } catch {}
+
+      // Clear storages
+      try { localStorage.clear(); } catch {}
+      try { sessionStorage.clear(); } catch {}
+
+      // Unregister all service workers
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      } catch {}
+
+      // Delete all caches
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      } catch {}
+
+      // Force reload with cache-busting to pull freshest version
+      const url = new URL(window.location.href);
+      url.searchParams.set('reset', Date.now().toString());
+      window.location.replace(url.toString());
+    } catch (e) {
+      console.warn('Delete everything failed', e);
+      // Attempt a basic reload regardless
+      window.location.reload();
+    }
   });
 }
 
