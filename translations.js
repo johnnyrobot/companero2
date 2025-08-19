@@ -28,7 +28,17 @@ const translations = {
     export: "Export",
     import: "Import",
     noClassesYet: "No classes yet. Add your first class above.",
-    footerText: "Local-only, offline-capable. Your data stays on this device."
+    footerText: "Local-only, offline-capable. Your data stays on this device.",
+    installIosHint: "To install this app on your iPhone, tap the Share button and then 'Add to Home Screen'.",
+    edit: "Edit",
+    delete: "Delete",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    confirmDelete: "Delete this class?",
+    importReplaceConfirm: "Import will replace your current classes. Continue?",
+    importComplete: "Import complete.",
+    importFailed: "Failed to import JSON.",
+    section: "Section"
   },
   es: {
     appTitle: "Compañero",
@@ -59,6 +69,16 @@ const translations = {
     export: "Exportar",
     import: "Importar",
     noClassesYet: "Aún no hay clases. Agregue su primera clase arriba.",
-    footerText: "Solo local, con capacidad sin conexión. Sus datos permanecen en este dispositivo."
+    footerText: "Solo local, con capacidad sin conexión. Sus datos permanecen en este dispositivo.",
+    installIosHint: "Para instalar esta aplicación en su iPhone, toque el botón Compartir y luego 'Agregar a la pantalla de inicio'.",
+    edit: "Editar",
+    delete: "Eliminar",
+    moveUp: "Mover arriba",
+    moveDown: "Mover abajo",
+    confirmDelete: "¿Eliminar esta clase?",
+    importReplaceConfirm: "La importación reemplazará sus clases actuales. ¿Continuar?",
+    importComplete: "Importación completa.",
+    importFailed: "Error al importar JSON.",
+    section: "Sección"
   }
 };

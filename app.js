@@ -70,6 +70,15 @@ const studentIdInput = document.getElementById('student-id');
 const studentEmailInput = document.getElementById('student-email');
 const languageToggle = document.getElementById('language-toggle');
 
+// i18n helper
+function t(key) {
+  try {
+    return (translations?.[currentLanguage]?.[key]) ?? key;
+  } catch {
+    return key;
+  }
+}
+
 
 function setBusy(isBusy) {
   listEl.setAttribute('aria-busy', isBusy ? 'true' : 'false');
@@ -168,7 +177,10 @@ function renderList() {
 
     const title = document.createElement('div');
     title.className = 'item-title';
-    title.textContent = [item.name, item.section ? `(Section ${item.section})` : ''].filter(Boolean).join(' ');
+    title.textContent = [
+      item.name,
+      item.section ? `(${t('section')} ${item.section})` : ''
+    ].filter(Boolean).join(' ');
 
     const meta = document.createElement('div');
     meta.className = 'item-meta';
@@ -186,27 +198,27 @@ function renderList() {
     const editBtn = document.createElement('button');
     editBtn.className = 'btn';
     editBtn.type = 'button';
-    editBtn.textContent = 'Edit';
+    editBtn.textContent = t('edit');
     editBtn.addEventListener('click', () => fillForm(item));
 
     const delBtn = document.createElement('button');
     delBtn.className = 'btn';
     delBtn.type = 'button';
-    delBtn.textContent = 'Delete';
+    delBtn.textContent = t('delete');
     delBtn.addEventListener('click', () => {
-      if (confirm('Delete this class?')) deleteItem(item.id);
+      if (confirm(t('confirmDelete'))) deleteItem(item.id);
     });
 
     const upBtn = document.createElement('button');
     upBtn.className = 'btn';
     upBtn.type = 'button';
-    upBtn.textContent = 'Move up';
+    upBtn.textContent = t('moveUp');
     upBtn.addEventListener('click', () => moveItem(item.id, -1));
 
     const downBtn = document.createElement('button');
     downBtn.className = 'btn';
     downBtn.type = 'button';
-    downBtn.textContent = 'Move down';
+    downBtn.textContent = t('moveDown');
     downBtn.addEventListener('click', () => moveItem(item.id, +1));
 
     actions.append(editBtn, delBtn, upBtn, downBtn);
@@ -248,7 +260,7 @@ function importData(file) {
       const parsed = JSON.parse(reader.result);
       const arr = parsed && Array.isArray(parsed.classes) ? parsed.classes : (Array.isArray(parsed) ? parsed : null);
       if (!arr) throw new Error('Invalid format');
-      if (!confirm('Import will replace your current classes. Continue?')) return;
+      if (!confirm(t('importReplaceConfirm'))) return;
       // Basic validation and normalization
       const cleaned = arr.map((c) => ({
         id: c.id || uid(),
@@ -261,9 +273,9 @@ function importData(file) {
       state.classes = cleaned;
       saveClasses(state.classes);
       renderList();
-      alert('Import complete.');
+      alert(t('importComplete'));
     } catch (e) {
-      alert('Failed to import JSON.');
+      alert(t('importFailed'));
       console.error(e);
     } finally {
       importInput.value = '';
@@ -328,6 +340,8 @@ function setLanguage(lang) {
   });
 
   languageToggle.textContent = lang === 'en' ? 'Español' : 'English';
+  // Re-render dynamic content that isn't data-key driven
+  renderList();
 }
 
 languageToggle.addEventListener('click', () => {
@@ -390,7 +404,7 @@ function setupInstallButton() {
     // We just show the button and explain how to 'Add to Home Screen'.
     installBtn.hidden = false;
     installBtn.addEventListener('click', () => {
-      alert("To install this app on your iPhone, tap the Share button and then 'Add to Home Screen'.");
+      alert(t('installIosHint'));
     });
     return;
   }

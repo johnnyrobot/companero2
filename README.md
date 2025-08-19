@@ -26,7 +26,7 @@ Prereq: Docker Desktop (with Compose v2) installed.
 docker compose up -d --build
 
 # Open the app
-# http://localhost:8080
+# http://localhost:6969
 
 # Stop
 docker compose down
@@ -50,7 +50,7 @@ docker compose down
 ## GitHub & CI
 This repo includes:
 - `Dockerfile` to serve the static PWA via `nginx:alpine`.
-- `docker-compose.yml` mapping host `8080 -> 80` in the container.
+- `docker-compose.yml` mapping host `6969 -> 80` in the container.
 - GitHub Actions workflow at `.github/workflows/ci.yml` that builds the image and runs a smoke test.
 
 Quick start to publish to GitHub:
