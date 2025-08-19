@@ -1,6 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'course-companion-cache-v3';
+const CACHE_NAME = 'course-companion-cache-v4';
 const APP_SHELL = [
   '.',
   './index.html',

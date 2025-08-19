@@ -67,6 +67,7 @@ const emptyStateEl = document.getElementById('empty-state');
 const installBtn = document.getElementById('install-btn');
 const updateBanner = document.getElementById('update-banner');
 const reloadBtn = document.getElementById('reload-btn');
+const checkUpdatesBtn = document.getElementById('check-updates-btn');
 // Profile elems
 const studentIdInput = document.getElementById('student-id');
 const studentEmailInput = document.getElementById('student-email');
@@ -439,6 +440,50 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
   reloadingDueToSW = true;
   window.location.reload();
 });
+
+// Manual check for updates
+if (checkUpdatesBtn) {
+  checkUpdatesBtn.addEventListener('click', async () => {
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg) {
+        alert(t('upToDate'));
+        return;
+      }
+      // Trigger browser to check for updates
+      await reg.update();
+
+      // If there's a waiting worker after update, show the banner
+      if (reg.waiting) {
+        showUpdateBanner(reg.waiting);
+        return;
+      }
+
+      // If an update is installing, wait for it to become installed
+      const sw = reg.installing;
+      if (sw) {
+        sw.addEventListener('statechange', () => {
+          if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateBanner(reg.waiting || sw);
+          }
+        });
+        return;
+      }
+
+      // Slight delay to allow any async state to settle
+      setTimeout(() => {
+        if (reg.waiting) {
+          showUpdateBanner(reg.waiting);
+        } else {
+          alert(t('upToDate'));
+        }
+      }, 400);
+    } catch (e) {
+      console.warn('Update check failed', e);
+      alert(t('upToDate'));
+    }
+  });
+}
 
 // PWA: custom install prompt
 let deferredPrompt = null;
