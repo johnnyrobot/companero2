@@ -65,10 +65,13 @@ const importInput = document.getElementById('import-input');
 const listEl = document.getElementById('class-list');
 const emptyStateEl = document.getElementById('empty-state');
 const installBtn = document.getElementById('install-btn');
+const updateBanner = document.getElementById('update-banner');
+const reloadBtn = document.getElementById('reload-btn');
 // Profile elems
 const studentIdInput = document.getElementById('student-id');
 const studentEmailInput = document.getElementById('student-email');
 const languageToggle = document.getElementById('language-toggle');
+const iosHintEl = document.getElementById('ios-install-hint');
 
 // i18n helper
 function t(key) {
@@ -375,11 +378,48 @@ studentEmailInput?.addEventListener('input', scheduleProfileSave);
 // PWA: register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js').catch(err => {
+    navigator.serviceWorker.register('./service-worker.js').then((reg) => {
+      // If there's already a waiting SW, show banner
+      if (reg.waiting) {
+        showUpdateBanner(reg.waiting);
+      }
+
+      // Listen for new updates
+      reg.addEventListener('updatefound', () => {
+        const sw = reg.installing;
+        if (!sw) return;
+        sw.addEventListener('statechange', () => {
+          if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+            // A new version is installed and waiting
+            showUpdateBanner(reg.waiting || sw);
+          }
+        });
+      });
+    }).catch(err => {
       console.warn('SW registration failed', err);
     });
   });
 }
+
+// Update flow: show banner and reload when user accepts
+let reloadingDueToSW = false;
+function showUpdateBanner(waitingWorker) {
+  if (!updateBanner || !reloadBtn || !waitingWorker) return;
+  updateBanner.hidden = false;
+  reloadBtn.onclick = () => {
+    try {
+      // Tell the waiting SW to activate immediately
+      waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    } catch (e) {}
+  };
+}
+
+// When the new SW takes control, reload once to get fresh assets
+navigator.serviceWorker?.addEventListener('controllerchange', () => {
+  if (reloadingDueToSW) return;
+  reloadingDueToSW = true;
+  window.location.reload();
+});
 
 // PWA: custom install prompt
 let deferredPrompt = null;
@@ -395,6 +435,7 @@ function setupInstallButton() {
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   if (isStandalone) {
     installBtn.hidden = true;
+    if (iosHintEl) iosHintEl.hidden = true;
     return;
   }
 
@@ -403,6 +444,7 @@ function setupInstallButton() {
     // On iOS, the 'beforeinstallprompt' event is not supported.
     // We just show the button and explain how to 'Add to Home Screen'.
     installBtn.hidden = false;
+    if (iosHintEl) iosHintEl.hidden = false;
     installBtn.addEventListener('click', () => {
       alert(t('installIosHint'));
     });
@@ -436,6 +478,7 @@ function setupInstallButton() {
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
     installBtn.hidden = true;
+    if (iosHintEl) iosHintEl.hidden = true;
   });
 }
 
